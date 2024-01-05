@@ -43,15 +43,25 @@ transactions = {
                    fee=1.352235772358, unit_price=33.600000000000)
 }
 
+logger.info(f"transactions built!, type = {type(transactions)}")
+
 # Transaction data server routes
 @app.get("/")
-def root():
-    logger.info("GET call to root route")
-    return {"Hello": "Welcome to the Transaction Data Server!!!"}
+def root() -> str:
+    __name__ = 'root'
+    logger.info(f'received GET request to the {__name__} route')
+    return "Welcome to the Transaction Data Server!!!"
 
 @app.get("/transactions/{transaction_id}")
 def query_transactions_by_id(transaction_id: int) -> Transaction:
-    logger.info("GET call to transaction_id route")
+    __name__ = 'query_transactions_by_id'
+    logger.info(f'received GET request to the {__name__} route')
     if transaction_id not in transactions:
         raise HTTPException(status_code=404, detail=f"Transaction with id {transaction_id} not found")
     return transactions[transaction_id]
+
+@app.get("/transactions")
+def query_transactions() -> dict[int, Transaction]:
+    __name__ = 'query_transactions'
+    logger.info(f'received GET request to the {__name__} route')
+    return transactions

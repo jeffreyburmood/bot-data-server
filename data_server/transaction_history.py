@@ -16,8 +16,6 @@ class Transaction(BaseModel):
     fee: float
     unit_price: float
 
-    def __init__(self, **data: Any):
-        super().__init__(**data)
 
 
 
