@@ -1,7 +1,11 @@
 """ this file contains the API route functions used for the data server """
 
 import logging
+from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from transaction_history import Transaction
 
+app = FastAPI()
 
 # setup logger and provide name
 logger = logging.getLogger("myLogger")
@@ -27,6 +31,27 @@ file_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+transactions = {
+    0: Transaction(time="12/19/2023 4:22:16 PM", order_type="Market Buy", status="Executed",
+                   spend=1000.000000000, spend_currency="USD", received=13.315536970000, received_currency="Sol",
+                   fee=10.000000000000, unit_price=74.349235951241),
+    1: Transaction(time="12/19/2023 4:20:33 PM", order_type="Market Buy", status="Executed",
+                   spend=260.000000000000, spend_currency="USD", received=512.540000000000, received_currency="Sand",
+                   fee=2.600000000000, unit_price=0.502204705974),
+    2: Transaction(time="12/9/2023 11:12:34 AM", order_type="Market Sell", status="Executed",
+                   spend=4.000000000000, spend_currency="AVAX", received=133.060000000000, received_currency="Usd",
+                   fee=1.352235772358, unit_price=33.600000000000)
+}
 
-if __name__ == '__main__':
-    pass
+# Transaction data server routes
+@app.get("/")
+def root():
+    logger.info("GET call to root route")
+    return {"Hello": "Welcome to the Transaction Data Server!!!"}
+
+@app.get("/transactions/{transaction_id}")
+def query_transactions_by_id(transaction_id: int) -> Transaction:
+    logger.info("GET call to transaction_id route")
+    if transaction_id not in transactions:
+        raise HTTPException(status_code=404, detail=f"Transaction with id {transaction_id} not found")
+    return transactions[transaction_id]
