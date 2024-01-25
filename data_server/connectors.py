@@ -1,6 +1,6 @@
 """ this file contains the methods used to connect and communicate with the various databases """
-
 import psycopg
+from psycopg import ConnectionInfo
 import logging
 
 class PostgresDB:
@@ -9,7 +9,7 @@ class PostgresDB:
         self.connection_str = "host=172.18.0.2 port=5432 dbname=postgres user=postgres password=ascinc"
         self.logger = logging.Logger
 
-    def get_connection_info(self, conn):
+    def get_connection_info(self, conn) -> ConnectionInfo:
 
         return conn.info
 

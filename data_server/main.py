@@ -71,7 +71,7 @@ def query_transactions() -> dict[int, Transaction]:
 # Postgres DB related routes
 
 @app.get("/postgres/connection-info")
-def query_connection_info():
+def query_connection_info() -> dict[str: str | int]:
     __name__ = 'query_connection_info'
     logger.info(f'received GET request to the {__name__} route')
     db = PostgresDB()
@@ -81,7 +81,9 @@ def query_connection_info():
             "status": str(connection.status.value),
             "host": connection.host,
             "hostaddr": connection.hostaddr,
-            "port": connection.port
+            "port": connection.port,
+            "dbname": connection.dbname,
+            "user": connection.user
         }
 
     return connection_info
