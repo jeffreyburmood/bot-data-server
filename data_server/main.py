@@ -3,7 +3,7 @@
 import logging
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
-from transaction_history import Transaction
+from data_model import Transaction, DBConnectionInfo
 from connectors import PostgresDB
 import psycopg
 
@@ -71,7 +71,7 @@ def query_transactions() -> dict[int, Transaction]:
 # Postgres DB related routes
 
 @app.get("/postgres/connection-info")
-def query_connection_info() -> dict[str: str | int]:
+def query_connection_info() -> DBConnectionInfo:
     __name__ = 'query_connection_info'
     logger.info(f'received GET request to the {__name__} route')
     db = PostgresDB()

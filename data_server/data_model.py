@@ -16,6 +16,13 @@ class Transaction(BaseModel):
     fee: float
     unit_price: float
 
+class DBConnectionInfo(BaseModel):
+    status: str
+    host: str
+    hostaddr: str
+    post: str
+
+
 
 
 
