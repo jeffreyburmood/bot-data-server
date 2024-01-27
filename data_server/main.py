@@ -90,7 +90,7 @@ def query_connection_info() -> DBConnectionInfo:
     return connection_info
 
 @app.get("/postgres/load-transaction-history")
-def load_transaction_history() -> None:
+def load_transaction_history() -> int:
     __name__ = 'load_transaction_history'
     logger.info(f'received GET request to the {__name__} route')
 
@@ -132,10 +132,16 @@ def load_transaction_history() -> None:
             with open("TransactionHistory.csv") as csvfile:
                 reader = csv.DictReader(csvfile, fieldnames=column_names)
 
+                # initialize a row insert counter
+                num_rows = 0
                 for row in reader:
                     cur.execute("""
                         INSERT INTO public.transactionhistory (time, ordertype, status, spend, spendcurrency, received, receivedcurrency, fee, unitprice)
                         VALUES (%(time)s, %(order_type)s, %(status)s, %(spend)s, %(spend_currency)s, %(received)s, %(received_currency)s, %(fee)s, %(unit_price)s);
                         """, row)
 
-            logger.info("successful INSERT command request made and processed")
+                    num_rows += cur.rowcount
+
+            logger.info(f"successful INSERT command request made and processed for {num_rows} rows")
+
+            return num_rows  # return the number of rows inserted
