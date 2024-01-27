@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from data_model import Transaction, DBConnectionInfo
 from connectors import PostgresDB
 import psycopg
+import csv
 
 app = FastAPI()
 
@@ -92,13 +93,18 @@ def query_connection_info() -> DBConnectionInfo:
 def load_transaction_history() -> None:
     __name__ = 'load_transaction_history'
     logger.info(f'received GET request to the {__name__} route')
+
+    # set the column names used for the CSV reader when reading in the transaction history
+    column_names = ["time", "order_type", "status", "spend", "spend_currency", "received", "received_currency", "fee",
+                    "unit_price"]
+
     db = PostgresDB()
     with psycopg.connect(conninfo=db.connection_str) as conn:
 
         logger.info("successful connection made to the database")
 
         with conn.cursor() as cur:
-
+            # check to see if the transaction history table exists, if not, create the table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS public.transactionhistory
                     (
@@ -115,8 +121,21 @@ def load_transaction_history() -> None:
             """)
             logger.info("successful CREATE TABLE command request made and processed")
 
-        # once db connection is made, create a csv reader for the transaction history file
-        # check to see if the transaction history table exists
-        # if the table exists, delete all of the rows
-        # if it doesn't exist, create it
+            # delete all of the rows of the current transaction history table
 
+            cur.execute(
+                "DELETE FROM ONLY public.transactionhistory"
+            )
+            logger.info("successful DELETE command request made and processed")
+
+            # now we're ready to create a csv reader for the transaction history file and read in the file
+            with open("TransactionHistory.csv") as csvfile:
+                reader = csv.DictReader(csvfile, fieldnames=column_names)
+
+                for row in reader:
+                    cur.execute("""
+                        INSERT INTO public.transactionhistory (time, ordertype, status, spend, spendcurrency, received, receivedcurrency, fee, unitprice)
+                        VALUES (%(time)s, %(order_type)s, %(status)s, %(spend)s, %(spend_currency)s, %(received)s, %(received_currency)s, %(fee)s, %(unit_price)s);
+                        """, row)
+
+            logger.info("successful INSERT command request made and processed")
