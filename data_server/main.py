@@ -87,3 +87,16 @@ def query_connection_info() -> DBConnectionInfo:
         }
 
     return connection_info
+
+@app.get("/postgres/load-transaction-history")
+def load_transaction_history():
+    __name__ = 'load_transaction_history'
+    logger.info(f'received GET request to the {__name__} route')
+    db = PostgresDB()
+    with psycopg.connect(conninfo=db.connection_str) as conn:
+        # once db connection is made, create a csv reader for the transaction history file
+        # check to see if the transaction history table exists
+        # if the table exists, delete all of the rows
+        # if it doesn't exist, create it
+        
+    return connection_info
