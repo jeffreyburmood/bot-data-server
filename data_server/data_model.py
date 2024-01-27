@@ -20,7 +20,10 @@ class DBConnectionInfo(BaseModel):
     status: str
     host: str
     hostaddr: str
-    post: str
+    port: str
+    dbname: str
+    user: str
+
 
 
 

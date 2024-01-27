@@ -77,26 +77,46 @@ def query_connection_info() -> DBConnectionInfo:
     db = PostgresDB()
     with psycopg.connect(conninfo=db.connection_str) as conn:
         connection = db.get_connection_info(conn)
-        connection_info = {
+        connection_info = DBConnectionInfo(** {
             "status": str(connection.status.value),
             "host": connection.host,
             "hostaddr": connection.hostaddr,
-            "port": connection.port,
+            "port": str(connection.port),
             "dbname": connection.dbname,
             "user": connection.user
-        }
+        })
 
     return connection_info
 
 @app.get("/postgres/load-transaction-history")
-def load_transaction_history():
+def load_transaction_history() -> None:
     __name__ = 'load_transaction_history'
     logger.info(f'received GET request to the {__name__} route')
     db = PostgresDB()
     with psycopg.connect(conninfo=db.connection_str) as conn:
+
+        logger.info("successful connection made to the database")
+
+        with conn.cursor() as cur:
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS public.transactionhistory
+                    (
+                        "time" text COLLATE pg_catalog."default",
+                        "orderType" text COLLATE pg_catalog."default",
+                        status text COLLATE pg_catalog."default",
+                        spend numeric,
+                        "spendCurrency" text COLLATE pg_catalog."default",
+                        received numeric,
+                        "receivedCurrency" text COLLATE pg_catalog."default",
+                        fee numeric,
+                        "unitPrice" numeric
+                    )
+            """)
+            logger.info("successful CREATE TABLE command request made and processed")
+
         # once db connection is made, create a csv reader for the transaction history file
         # check to see if the transaction history table exists
         # if the table exists, delete all of the rows
         # if it doesn't exist, create it
-        
-    return connection_info
+
