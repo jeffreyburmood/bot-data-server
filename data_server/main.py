@@ -7,6 +7,7 @@ from data_model import Transaction, DBConnectionInfo
 from connectors import PostgresDB
 import psycopg
 import csv
+from typing import List
 
 app = FastAPI()
 
@@ -64,10 +65,30 @@ def query_transactions_by_id(transaction_id: int) -> Transaction:
     return transactions[transaction_id]
 
 @app.get("/transactions")
-def query_transactions() -> dict[int, Transaction]:
+def query_transactions() -> list[Transaction]:
     __name__ = 'query_transactions'
     logger.info(f'received GET request to the {__name__} route')
-    return transactions
+    # open the db and go get all of the transactions
+    db = PostgresDB()
+    with psycopg.connect(conninfo=db.connection_str) as conn:
+
+        logger.info("successful connection made to the database")
+
+        with conn.cursor() as cur:
+            # check to see if the transaction history table exists, if not, create the table
+            cur.execute(
+                "SELECT * FROM public.transactionhistory"
+            )
+            logger.info("successful SELECT command request made and processed")
+
+            # now pull all of the records in the query response
+            cur.fetchall()
+
+            transaction_list = list()
+            for record in cur:
+                transaction_list.append(Transaction(**record))
+
+    return transaction_list
 
 # Postgres DB related routes
 
@@ -78,7 +99,8 @@ def query_connection_info() -> DBConnectionInfo:
     db = PostgresDB()
     with psycopg.connect(conninfo=db.connection_str) as conn:
         connection = db.get_connection_info(conn)
-        connection_info = DBConnectionInfo(** {
+        connection_info = DBConnectionInfo(**
+        {
             "status": str(connection.status.value),
             "host": connection.host,
             "hostaddr": connection.hostaddr,
